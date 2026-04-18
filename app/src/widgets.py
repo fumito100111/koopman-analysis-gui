@@ -1,13 +1,107 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 import tkinter as tk
 import tkinter.font as tkfont
 import tkinter.scrolledtext as stext
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from .utils import AnalysisTools
 from . import colors
 if TYPE_CHECKING:
     from .app import App
+
+class RadioButton(tk.Frame):
+    width: int
+    height: int
+    text: str
+    value: str
+    variable: tk.Variable
+    label: tk.Label
+    radio_button: tk.Radiobutton
+    def __init__(self, master: tk.Misc, width: int, height: int, text: str, value: str, variable: tk.Variable, command: Callable[[], None] | None = None) -> None:
+        super(RadioButton, self).__init__(
+            master=master,
+            width=width,
+            height=height,
+            bg=colors.SIDEBAR_BG
+        )
+        self.width = width
+        self.height = height
+        self.text = text
+        self.value = value
+        self.variable = variable
+        self.command = command
+        self.initialize()
+
+    def initialize(self) -> None:
+        self.pack_propagate(False)
+        self.layout()
+
+    def layout(self) -> None:
+        font = tkfont.nametofont('TkDefaultFont').copy()
+        font.config(size=max(10, int(self.master.winfo_screenheight() / 70)))
+        self.label = tk.Label(
+            master=self,
+            text=self.text,
+            font=font,
+            bg=colors.SIDEBAR_BG,
+            fg=colors.SIDEBAR_FG
+        )
+        self.label.pack(side=tk.TOP)
+        self.radio_button = tk.Radiobutton(
+            master=self,
+            bg=colors.SIDEBAR_BG,
+            fg=colors.SIDEBAR_FG,
+            value=self.value,
+            variable=self.variable,
+            command=self.command
+        )
+        self.radio_button.pack(side=tk.TOP)
+
+class AnalysisToolsPanel(tk.Frame):
+    width: int
+    height: int
+    selected_tool: tk.StringVar
+    def __init__(self, master: tk.Misc, width: int, height: int) -> None:
+        super(AnalysisToolsPanel, self).__init__(
+            master=master,
+            width=width,
+            height=height,
+            bg=colors.SIDEBAR_BG
+        )
+        self.width = width
+        self.height = height
+        self.initialize()
+
+    def initialize(self) -> None:
+        self.layout()
+
+    def layout(self) -> None:
+        font = tkfont.nametofont('TkDefaultFont').copy()
+        font.config(size=max(12, int(self.master.winfo_screenheight() / 60)), weight=tkfont.BOLD)
+        self.label = tk.Label(
+            master=self,
+            text='Analysis Tools',
+            font=font,
+            bg=colors.SIDEBAR_BG,
+            fg=colors.SIDEBAR_FG
+        )
+        self.label.place(relx=0.0, rely=0.0, anchor=tk.NW)
+        self.selected_tool = tk.StringVar()
+        for i, tool in enumerate(AnalysisTools):
+            text = tool.value.replace(' ', '\n')
+            if tool != AnalysisTools.LogarithmicEDMD:
+                text = f'\n{text}'
+            RadioButton(
+                master=self,
+                width=int(self.width / len(AnalysisTools)),
+                height=int(self.height * 0.7),
+                text=text,
+                value=tool.value,
+                variable=self.selected_tool,
+                command=lambda t=tool: print(f'Selected tool: {t.value}')
+            ).place(relx=i / len(AnalysisTools), rely=0.3, anchor=tk.NW)
+        self.selected_tool.set(AnalysisTools.EDMD.value)
 
 class Sidebar(tk.Frame):
     width: int
@@ -17,14 +111,25 @@ class Sidebar(tk.Frame):
             master=master,
             width=width,
             height=height,
-            bg=colors.SIDEBAR_BG,
+            # bg=colors.SIDEBAR_BG,
+            bg='lightblue'
         )
         self.width = width
         self.height = height
         self.initialize()
 
     def initialize(self) -> None:
-        pass
+        self.pack_propagate(False)
+        self.layout()
+
+    def layout(self) -> None:
+        AnalysisToolsPanel(
+            master=self,
+            width=self.width,
+            height=int(self.height * 0.15)
+        ).place(relx=0.0, rely=0.01, anchor=tk.NW)
+
+
 
 class Monitor(tk.Frame):
     width: int
