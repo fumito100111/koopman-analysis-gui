@@ -15,6 +15,7 @@ from .utils import (
     Parameters,
     PARAMETERS_NAME_MAX_LENGTH,
     PARAMETER_MAX_LENGTH,
+    RegularizationOptions,
     OperatorOptions,
     FILENAME_SHOW_MAX_LENGTH
 )
@@ -185,6 +186,7 @@ class ParametersPanel(tk.Frame):
     width: int
     height: int
     fields: dict[Parameters, ParameterField]
+    regularization_panel: RegularizationOptionsSubPanel
     def __init__(self, master: Sidebar, width: int, height: int) -> None:
         super(ParametersPanel, self).__init__(
             master=master,
@@ -215,30 +217,37 @@ class ParametersPanel(tk.Frame):
             master=self,
             width=self.width,
             height=int(self.height / len(Parameters)),
-            text=f'{' ' * max(0, PARAMETERS_NAME_MAX_LENGTH - len(Parameters.dim.value))}{Parameters.dim.value} : '
+            text=f'{Parameters.dim.value} : '
         )
-        self.fields[Parameters.dim].place(relx=0.01, rely=0.45, anchor=tk.W)
+        self.fields[Parameters.dim].place(relx=0.01, rely=0.25, anchor=tk.W)
         self.fields[Parameters.degree] = ParameterField(
             master=self,
             width=self.width,
             height=int(self.height / len(Parameters)),
-            text=f'{' ' * max(0, PARAMETERS_NAME_MAX_LENGTH - len(Parameters.degree.value))}{Parameters.degree.value} : '
+            text=f'{Parameters.degree.value} : '
         )
-        self.fields[Parameters.degree].place(relx=0.01, rely=0.85, anchor=tk.W)
+        self.fields[Parameters.degree].place(relx=0.01, rely=0.5, anchor=tk.W)
         self.fields[Parameters.dt] = ParameterField(
             master=self,
             width=self.width,
             height=int(self.height / len(Parameters)),
-            text=f'{' ' * max(0, PARAMETERS_NAME_MAX_LENGTH - len(Parameters.dt.value))}{Parameters.dt.value} : '
+            text=f'{Parameters.dt.value} : '
         )
-        self.fields[Parameters.dt].place(relx=0.9, rely=0.45, anchor=tk.E)
+        self.fields[Parameters.dt].place(relx=0.9, rely=0.25, anchor=tk.E)
         self.fields[Parameters.train_ratio] = ParameterField(
             master=self,
             width=self.width,
             height=int(self.height / len(Parameters)),
-            text=f'{' ' * max(0, PARAMETERS_NAME_MAX_LENGTH - len(Parameters.train_ratio.value))}{Parameters.train_ratio.value} : '
+            text=f'{Parameters.train_ratio.value} : '
         )
-        self.fields[Parameters.train_ratio].place(relx=0.9, rely=0.85, anchor=tk.E)
+        self.fields[Parameters.train_ratio].place(relx=0.9, rely=0.5, anchor=tk.E)
+
+        self.regularization_panel = RegularizationOptionsSubPanel(
+            master=self,
+            width=self.width,
+            height=int(self.height * 0.4)
+        )
+        self.regularization_panel.place(relx=0.0, rely=0.6, anchor=tk.NW)
 
     def get_parameters(self) -> dict[Parameters, int | float | None]:
         return {
@@ -273,6 +282,94 @@ class ParametersPanel(tk.Frame):
         try:
             train_ratio = float(self.fields[Parameters.train_ratio].field.get())
             return train_ratio if 0.0 < train_ratio <= 1.0 else None
+        except ValueError:
+            return None
+
+class RegularizationOptionsSubPanel(tk.Frame):
+    width: int
+    height: int
+    alpha_field: ParameterField
+    previous_option: RegularizationOptions
+    selected_option: tk.StringVar
+    def __init__(self, master: ParametersPanel, width: int, height: int) -> None:
+        super(RegularizationOptionsSubPanel, self).__init__(
+            master=master,
+            width=width,
+            height=height,
+            bg=colors.SIDEBAR_BG
+        )
+        self.width = width
+        self.height = height
+        self.previous_option = None
+        self.initialize()
+
+    def initialize(self) -> None:
+        self.layout()
+
+    def layout(self) -> None:
+        font = tkfont.nametofont('TkDefaultFont').copy()
+        font.config(size=max(10, int(self.master.winfo_screenheight() / 70)))
+        tk.Label(
+            master=self,
+            text='Regularization : ',
+            font=font,
+            fg=colors.SIDEBAR_FG,
+            bg=colors.SIDEBAR_BG
+        ).place(relx=0.05, rely=0.5, anchor=tk.W)
+        self.selected_option = tk.StringVar()
+        for i, option in enumerate(RegularizationOptions):
+            text = option.value
+            tk.Radiobutton(
+                master=self,
+                text=text,
+                font=font,
+                fg=colors.SIDEBAR_FG,
+                bg=colors.SIDEBAR_BG,
+                value=option.value,
+                variable=self.selected_option,
+                command=lambda o=option: self.set_option(o)
+            ).place(relx=0.35, rely=0.5 + (i - 1) * 0.3, anchor=tk.W)
+        self.alpha_field = ParameterField(
+            master=self,
+            width=int(self.width * 0.3),
+            height=int(self.height * 0.4),
+            text=f'{Parameters.alpha.value} : '
+        )
+        self.alpha_field.place(relx=0.9, rely=0.5, anchor=tk.E)
+        self.alpha_field.lower()
+        self.alpha_field.field.config(
+            disabledforeground=colors.PARAMETER_FIELD_DISABLED_FG,
+            disabledbackground=colors.PARAMETER_FIELD_DISABLED_BG
+        )
+        self.alpha_field.field.insert(0, '1.0')
+        self.alpha_field.field.config(state=tk.DISABLED)
+        self.selected_option.set(RegularizationOptions.None_.value)
+        self.set_option(RegularizationOptions.None_)
+
+    def set_option(self, option: RegularizationOptions) -> None:
+        if self.previous_option == option:
+            return
+        if option == RegularizationOptions.None_:
+            self.set_none()
+        elif option == RegularizationOptions.Lasso:
+            self.set_lasso()
+        elif option == RegularizationOptions.Ridge:
+            self.set_ridge()
+        self.previous_option = option
+
+    def set_none(self) -> None:
+        self.alpha_field.field.config(state=tk.DISABLED)
+
+    def set_lasso(self) -> None:
+        self.alpha_field.field.config(state=tk.NORMAL)
+
+    def set_ridge(self) -> None:
+        self.alpha_field.field.config(state=tk.NORMAL)
+
+    def get_alpha(self) -> float | None:
+        try:
+            alpha = float(self.alpha_field.field.get())
+            return alpha if alpha > 0.0 else None
         except ValueError:
             return None
 
@@ -561,8 +658,7 @@ class Sidebar(tk.Frame):
             master=master,
             width=width,
             height=height,
-            # bg=colors.SIDEBAR_BG
-            bg='lightblue'
+            bg=colors.SIDEBAR_BG
         )
         self.width = width
         self.height = height

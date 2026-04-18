@@ -16,7 +16,13 @@ class Parameters(enum.StrEnum):
     dim = 'Dimension'
     degree = 'Degree'
     dt = 'Time Step'
-    train_ratio = 'Train Ratio'
+    train_ratio = 'Train Ratio',
+    alpha = 'Alpha'
+
+class RegularizationOptions(enum.StrEnum):
+    None_ = 'None'
+    Lasso = 'Lasso'
+    Ridge = 'Ridge'
 
 class OperatorOptions(enum.StrEnum):
     Left = 'Left'
