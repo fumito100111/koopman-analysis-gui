@@ -10,6 +10,7 @@ class Parameters(enum.StrEnum):
     dim = 'Dimension'
     degree = 'Degree'
     dt = 'Time Step'
+    train_ratio = 'Train Ratio'
 
 PARAMETERS_NAME_MAX_LENGTH = max(len(parameter.value) for parameter in Parameters)
 PARAMETER_MAX_LENGTH = 5

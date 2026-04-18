@@ -164,7 +164,7 @@ class ParameterField(tk.Frame):
             font=font,
             fg=colors.SIDEBAR_FG,
             bg=colors.SIDEBAR_BG,
-            width=PARAMETERS_NAME_MAX_LENGTH + 2,
+            width=PARAMETERS_NAME_MAX_LENGTH,
             anchor=tk.E
         ).pack(side=tk.LEFT)
         self.field = tk.Entry(
@@ -196,6 +196,7 @@ class ParametersPanel(tk.Frame):
 
     def initialize(self) -> None:
         self.layout()
+        self.fields[Parameters.train_ratio].field.insert(0, '0.8')
 
     def layout(self) -> None:
         font = tkfont.nametofont('TkDefaultFont').copy()
@@ -214,27 +215,35 @@ class ParametersPanel(tk.Frame):
             height=int(self.height / len(Parameters)),
             text=f'{' ' * max(0, PARAMETERS_NAME_MAX_LENGTH - len(Parameters.dim.value))}{Parameters.dim.value} : '
         )
-        self.fields[Parameters.dim].place(relx=0.05, rely=0.35, anchor=tk.W)
+        self.fields[Parameters.dim].place(relx=0.01, rely=0.35, anchor=tk.W)
         self.fields[Parameters.degree] = ParameterField(
             master=self,
             width=self.width,
             height=int(self.height / len(Parameters)),
             text=f'{' ' * max(0, PARAMETERS_NAME_MAX_LENGTH - len(Parameters.degree.value))}{Parameters.degree.value} : '
         )
-        self.fields[Parameters.degree].place(relx=0.05, rely=0.85, anchor=tk.W)
+        self.fields[Parameters.degree].place(relx=0.01, rely=0.85, anchor=tk.W)
         self.fields[Parameters.dt] = ParameterField(
             master=self,
             width=self.width,
             height=int(self.height / len(Parameters)),
             text=f'{' ' * max(0, PARAMETERS_NAME_MAX_LENGTH - len(Parameters.dt.value))}{Parameters.dt.value} : '
         )
-        self.fields[Parameters.dt].place(relx=0.95, rely=0.6, anchor=tk.E)
+        self.fields[Parameters.dt].place(relx=0.9, rely=0.35, anchor=tk.E)
+        self.fields[Parameters.train_ratio] = ParameterField(
+            master=self,
+            width=self.width,
+            height=int(self.height / len(Parameters)),
+            text=f'{' ' * max(0, PARAMETERS_NAME_MAX_LENGTH - len(Parameters.train_ratio.value))}{Parameters.train_ratio.value} : '
+        )
+        self.fields[Parameters.train_ratio].place(relx=0.9, rely=0.85, anchor=tk.E)
 
     def get_parameters(self) -> dict[Parameters, int | float | None]:
         return {
             Parameters.dim: self.get_dim(),
             Parameters.degree: self.get_degree(),
-            Parameters.dt: self.get_dt()
+            Parameters.dt: self.get_dt(),
+            Parameters.train_ratio: self.get_train_ratio()
         }
 
     def get_dim(self) -> int | None:
@@ -254,7 +263,14 @@ class ParametersPanel(tk.Frame):
     def get_dt(self) -> float | None:
         try:
             dt = float(self.fields[Parameters.dt].field.get())
-            return dt if dt > 0 else None
+            return dt if dt > 0.0 else None
+        except ValueError:
+            return None
+
+    def get_train_ratio(self) -> float | None:
+        try:
+            train_ratio = float(self.fields[Parameters.train_ratio].field.get())
+            return train_ratio if 0.0 < train_ratio <= 1.0 else None
         except ValueError:
             return None
 
