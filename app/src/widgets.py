@@ -230,8 +230,33 @@ class ParametersPanel(tk.Frame):
         )
         self.fields[Parameters.dt].place(relx=0.95, rely=0.6, anchor=tk.E)
 
-    def get_parameters(self) -> dict[Parameters, str]:
-        return {parameter: self.fields[parameter].field.get() for parameter in Parameters}
+    def get_parameters(self) -> dict[Parameters, int | float | None]:
+        return {
+            Parameters.dim: self.get_dim(),
+            Parameters.degree: self.get_degree(),
+            Parameters.dt: self.get_dt()
+        }
+
+    def get_dim(self) -> int | None:
+        try:
+            dim = int(self.fields[Parameters.dim].field.get())
+            return dim if dim > 0 else None
+        except ValueError:
+            return None
+
+    def get_degree(self) -> int | None:
+        try:
+            degree = int(self.fields[Parameters.degree].field.get())
+            return degree if degree > 0 else None
+        except ValueError:
+            return None
+
+    def get_dt(self) -> float | None:
+        try:
+            dt = float(self.fields[Parameters.dt].field.get())
+            return dt if dt > 0 else None
+        except ValueError:
+            return None
 
 class DatasetPanel(tk.Frame):
     width: int
@@ -310,6 +335,34 @@ class DatasetPanel(tk.Frame):
                 filename = file
             self.label.config(text=filename)
 
+class AnalysisModesPanel(tk.Frame):
+    width: int
+    height: int
+    def __init__(self, master: Sidebar, width: int, height: int) -> None:
+        super(AnalysisModesPanel, self).__init__(
+            master=master,
+            width=width,
+            height=height,
+            bg=colors.SIDEBAR_BG
+        )
+        self.width = width
+        self.height = height
+        self.initialize()
+
+    def initialize(self) -> None:
+        self.layout()
+
+    def layout(self) -> None:
+        font = tkfont.nametofont('TkDefaultFont').copy()
+        font.config(size=max(12, int(self.master.winfo_screenheight() / 60)), weight=tkfont.BOLD)
+        tk.Label(
+            master=self,
+            text='Analysis Modes',
+            font=font,
+            fg=colors.SIDEBAR_FG,
+            bg=colors.SIDEBAR_BG
+        ).place(relx=0.02, rely=0.0, anchor=tk.NW)
+
 class AnalysisButton(tk.Frame):
     width: int
     height: int
@@ -360,6 +413,7 @@ class Sidebar(tk.Frame):
     analysis_tools_panel: AnalysisToolsPanel
     parameters_panel: ParametersPanel
     dataset_panel: DatasetPanel
+    analysis_modes_panel: AnalysisModesPanel
     analysis_button: AnalysisButton
     def __init__(self, master: App, width: int, height: int) -> None:
         super(Sidebar, self).__init__(
@@ -396,6 +450,12 @@ class Sidebar(tk.Frame):
             height=int(self.height * 0.15)
         )
         self.dataset_panel.place(relx=0.0, rely=0.48, anchor=tk.NW)
+        self.analysis_modes_panel = AnalysisModesPanel(
+            master=self,
+            width=self.width,
+            height=int(self.height * 0.25)
+        )
+        self.analysis_modes_panel.place(relx=0.0, rely=0.64, anchor=tk.NW)
         self.analysis_button = AnalysisButton(
             master=self,
             width=self.width,
