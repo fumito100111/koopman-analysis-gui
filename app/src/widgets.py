@@ -61,6 +61,7 @@ class RadioButton(tk.Frame):
 class AnalysisToolsPanel(tk.Frame):
     width: int
     height: int
+    previous_tool: AnalysisTools
     selected_tool: tk.StringVar
     def __init__(self, master: tk.Misc, width: int, height: int) -> None:
         super(AnalysisToolsPanel, self).__init__(
@@ -71,6 +72,7 @@ class AnalysisToolsPanel(tk.Frame):
         )
         self.width = width
         self.height = height
+        self.previous_tool = None
         self.initialize()
 
     def initialize(self) -> None:
@@ -99,9 +101,33 @@ class AnalysisToolsPanel(tk.Frame):
                 text=text,
                 value=tool.value,
                 variable=self.selected_tool,
-                command=lambda t=tool: print(f'Selected tool: {t.value}')
+                command=lambda t=tool: self.set_tool(t)
             ).place(relx=i / len(AnalysisTools), rely=0.3, anchor=tk.NW)
         self.selected_tool.set(AnalysisTools.EDMD.value)
+        self.set_tool(AnalysisTools.EDMD)
+
+    def set_tool(self, tool: AnalysisTools) -> None:
+        if self.previous_tool == tool:
+            return
+        if tool == AnalysisTools.EDMD:
+            self.set_edmd()
+        elif tool == AnalysisTools.gEDMD:
+            self.set_gedmd()
+        elif tool == AnalysisTools.LogarithmicEDMD:
+            self.set_logarithmic_edmd()
+        self.previous_tool = tool
+
+    def set_edmd(self) -> None:
+        print('Selected EDMD')
+        pass
+
+    def set_gedmd(self) -> None:
+        print('Selected gEDMD')
+        pass
+
+    def set_logarithmic_edmd(self) -> None:
+        print('Selected Logarithmic EDMD')
+        pass
 
 class Sidebar(tk.Frame):
     width: int
