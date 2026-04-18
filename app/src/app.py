@@ -2,7 +2,7 @@ from __future__ import annotations
 import tkinter as tk
 from .widgets import Sidebar, Monitor, Graph
 
-TITLE = 'Koopman Analysis GUI'
+APP_NAME = 'Koopman Analysis GUI'
 
 class App(tk.Tk):
     width: int
@@ -12,7 +12,7 @@ class App(tk.Tk):
     graph: Graph
     def __init__(self) -> None:
         super(App, self).__init__()
-        self.title(TITLE)
+        self.title(APP_NAME)
         self.width = int(self.winfo_screenheight()*3 / 5) + int(self.winfo_screenwidth() / 5)
         self.height = int(self.winfo_screenheight()*3 / 5) + int(self.winfo_screenheight() / 5)
         self.geometry(
