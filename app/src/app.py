@@ -35,16 +35,6 @@ class App(tk.Tk):
             rely=1.0,
             anchor=tk.S
         )
-        self.sidebar = Sidebar(
-            master=self,
-            width=int(self.winfo_screenwidth() / 5),
-            height=int(self.winfo_screenheight() * 3 / 5)
-        )
-        self.sidebar.place(
-            relx=1.0,
-            rely=0.0,
-            anchor=tk.NE
-        )
         self.graph = Graph(
             master=self,
             width=int(self.winfo_screenheight() * 3 / 5),
@@ -54,6 +44,16 @@ class App(tk.Tk):
             relx=0.0,
             rely=0.0,
             anchor=tk.NW
+        )
+        self.sidebar = Sidebar(
+            master=self,
+            width=int(self.winfo_screenwidth() / 5),
+            height=int(self.winfo_screenheight() * 3 / 5)
+        )
+        self.sidebar.place(
+            relx=1.0,
+            rely=0.0,
+            anchor=tk.NE
         )
 
     def run(self) -> None:

@@ -8,7 +8,7 @@ import tkinter.filedialog as tkfd
 import tkinter.scrolledtext as stext
 import tkmacosx as mactk
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from .utils import (
     AnalysisTools,
     AnalysisModes,
@@ -17,8 +17,10 @@ from .utils import (
     PARAMETER_MAX_LENGTH,
     RegularizationOptions,
     OperatorOptions,
+    KoopmanAnalysisStatus,
     FILENAME_SHOW_MAX_LENGTH
 )
+from .koopman import EDMD, gEDMD, LogarithmicEDMD, koopman_analysis, create_figure_from_analysis_mode
 from . import colors
 if TYPE_CHECKING:
     from .app import App
@@ -440,12 +442,16 @@ class OperatorOptionsPanel(tk.Frame):
         self.previous_option = option
 
     def set_left(self) -> None:
-        print('Selected Left operator')
-        pass
+        if self.master.master.graph.tool is not None:
+            self.master.master.graph.tool.switch_operator(OperatorOptions.Left)
+            figure = create_figure_from_analysis_mode(self.master.master.graph.tool, self.master.analysis_modes_panel.selected_mode.get())
+            self.master.master.graph.plot(figure)
 
     def set_right(self) -> None:
-        print('Selected Right operator')
-        pass
+        if self.master.master.graph.tool is not None:
+            self.master.master.graph.tool.switch_operator(OperatorOptions.Right)
+            figure = create_figure_from_analysis_mode(self.master.master.graph.tool, self.master.analysis_modes_panel.selected_mode.get())
+            self.master.master.graph.plot(figure)
 
 class DatasetPanel(tk.Frame):
     width: int
@@ -586,20 +592,24 @@ class AnalysisModesPanel(tk.Frame):
         self.previous_mode = mode
 
     def set_matrix(self) -> None:
-        print('Selected Matrix mode')
-        pass
+        if self.master.master.graph.tool is not None:
+            figure = create_figure_from_analysis_mode(self.master.master.graph.tool, AnalysisModes.Matrix)
+            self.master.master.graph.plot(figure)
 
     def set_spectrum(self) -> None:
-        print('Selected Spectrum mode')
-        pass
+        if self.master.master.graph.tool is not None:
+            figure = create_figure_from_analysis_mode(self.master.master.graph.tool, AnalysisModes.Spectrum)
+            self.master.master.graph.plot(figure)
 
     def set_modes(self) -> None:
-        print('Selected Modes mode')
-        pass
+        if self.master.master.graph.tool is not None:
+            figure = create_figure_from_analysis_mode(self.master.master.graph.tool, AnalysisModes.Modes)
+            self.master.master.graph.plot(figure)
 
     def set_eigenfunctions(self) -> None:
-        print('Selected Eigenfunctions mode')
-        pass
+        if self.master.master.graph.tool is not None:
+            figure = create_figure_from_analysis_mode(self.master.master.graph.tool, AnalysisModes.Eigenfunctions)
+            self.master.master.graph.plot(figure)
 
 class AnalysisButton(tk.Frame):
     width: int
@@ -668,8 +678,8 @@ class AnalysisButton(tk.Frame):
             self.master.master.monitor.stdout('No dataset selected. Please select a dataset.')
             return
         analysis_mode = self.master.analysis_modes_panel.selected_mode.get()
-        self.master.master.monitor.stdout(f'Analyzing with {tool} ...')
-        self.master.master.monitor.stdout(f'< Settings >')
+        self.master.master.monitor.stdout(f'Running analysis with the following settings:')
+        self.master.master.monitor.stdout(f'  - Analysis Tool : {tool}')
         self.master.master.monitor.stdout(f'  - Parameters')
         self.master.master.monitor.stdout(f'    - Dimension        : {dim}')
         self.master.master.monitor.stdout(f'    - Degree           : {degree}')
@@ -679,7 +689,27 @@ class AnalysisButton(tk.Frame):
         self.master.master.monitor.stdout(f'    - Operator Options : {operator_option}')
         self.master.master.monitor.stdout(f'  - Dataset : {data_file}')
         self.master.master.monitor.stdout(f'  - Analysis Mode : {analysis_mode}')
-        self.master.master.monitor.stdout(f'------------------------------')
+
+        response = koopman_analysis(
+            tool=tool,
+            dim=dim,
+            degree=degree,
+            dt=dt,
+            train_ratio=train_ratio,
+            regularization=regularization,
+            alpha=alpha,
+            operator_option=operator_option,
+            data_file=data_file,
+            analysis_mode=analysis_mode
+        )
+
+        if response.status == KoopmanAnalysisStatus.Success:
+            self.master.master.monitor.stdout(response.message)
+            self.master.master.graph.plot(response.figure)
+            self.master.master.graph.tool = response.tool
+        else:
+            self.master.master.monitor.stdout('Koopman analysis failed.')
+            self.master.master.monitor.stdout(f'Error: {response.message}')
 
 class Sidebar(tk.Frame):
     width: int
@@ -790,6 +820,8 @@ class Graph(tk.Frame):
     width: int
     height: int
     canvas: FigureCanvasTkAgg
+    toolbar: NavigationToolbar2Tk
+    tool: EDMD | gEDMD | LogarithmicEDMD | None
     def __init__(self, master: App, width: int, height: int) -> None:
         super(Graph, self).__init__(
             master=master,
@@ -801,6 +833,7 @@ class Graph(tk.Frame):
         )
         self.width = width
         self.height = height
+        self.tool = None
         self.initialize()
 
     def initialize(self) -> None:
@@ -814,9 +847,13 @@ class Graph(tk.Frame):
         )
         self.canvas.draw()
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        self.toolbar = NavigationToolbar2Tk(self.canvas, self)
+        self.toolbar.update()
+        self.toolbar.place(relx=0.99, rely=0.99, anchor=tk.SE)
 
     def plot(self, figure: Figure) -> None:
         self.canvas.get_tk_widget().destroy()
+        self.toolbar.destroy()
         figure.set_size_inches(self.width / figure.dpi, self.height / figure.dpi)
         self.canvas = FigureCanvasTkAgg(
             figure=figure,
@@ -824,3 +861,6 @@ class Graph(tk.Frame):
         )
         self.canvas.draw()
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        self.toolbar = NavigationToolbar2Tk(self.canvas, self)
+        self.toolbar.update()
+        self.toolbar.place(relx=0.99, rely=0.99, anchor=tk.SE)
