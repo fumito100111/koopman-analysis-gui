@@ -816,11 +816,74 @@ class Monitor(tk.Frame):
         self.textbox.see(tk.END)
         self.textbox.config(state=tk.DISABLED)
 
+class GraphSwitchButton(tk.Frame):
+    index: int
+    def __init__(self, master: Graph, width: int, height: int) -> None:
+        super(GraphSwitchButton, self).__init__(
+            master=master,
+            width=width,
+            height=height,
+            bg=colors.GRAPH_BG
+        )
+        self.width = width
+        self.height = height
+        self.index = 0
+        self.initialize()
+
+    def initialize(self) -> None:
+        self.pack_propagate(False)
+        self.layout()
+
+    def layout(self) -> None:
+        font = tkfont.nametofont('TkDefaultFont').copy()
+        font.config(size=max(10, int(self.master.winfo_screenheight() / 70)))
+        button_kwargs = {
+            'master': self,
+            'width': int(self.width * 0.5),
+            'height': self.height,
+            'font': font,
+            'fg': colors.GRAPH_SWITCH_BUTTON_FG,
+            'bg': colors.GRAPH_SWITCH_BUTTON_BG,
+            'activeforeground': colors.GRAPH_SWITCH_BUTTON_ACTIVE_FG,
+            'activebackground': colors.GRAPH_SWITCH_BUTTON_ACTIVE_BG
+        }
+        if sys.platform == 'darwin':
+            mactk.Button(**button_kwargs, text='<', command=self.previous, borderless=True).place(relx=0.0, rely=0.5, anchor=tk.W)
+            mactk.Button(**button_kwargs, text='>', command=self.next, borderless=True).place(relx=1.0, rely=0.5, anchor=tk.E)
+        else:
+            tk.Button(**button_kwargs, text='<', command=self.previous).pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            tk.Button(**button_kwargs, text='>', command=self.next).pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+    def next(self) -> None:
+        if self.master.tool is None:
+            return
+        if len(self.master.tool.psi) <= self.index + 1:
+            return
+        mode = self.master.master.sidebar.analysis_modes_panel.selected_mode.get()
+        if mode == AnalysisModes.Matrix or mode == AnalysisModes.Spectrum:
+            return
+        self.index += 1
+        figure = create_figure_from_analysis_mode(self.master.tool, mode, self.index)
+        self.master.plot(figure)
+
+    def previous(self) -> None:
+        if self.master.tool is None:
+            return
+        if self.index - 1 < 0:
+            return
+        mode = self.master.master.sidebar.analysis_modes_panel.selected_mode.get()
+        if mode == AnalysisModes.Matrix or mode == AnalysisModes.Spectrum:
+            return
+        self.index -= 1
+        figure = create_figure_from_analysis_mode(self.master.tool, mode, self.index)
+        self.master.plot(figure)
+
 class Graph(tk.Frame):
     width: int
     height: int
     canvas: FigureCanvasTkAgg
     toolbar: NavigationToolbar2Tk
+    graph_switch_button: GraphSwitchButton
     tool: EDMD | gEDMD | LogarithmicEDMD | None
     def __init__(self, master: App, width: int, height: int) -> None:
         super(Graph, self).__init__(
@@ -837,6 +900,10 @@ class Graph(tk.Frame):
         self.initialize()
 
     def initialize(self) -> None:
+        self.pack_propagate(False)
+        self.layout()
+
+    def layout(self) -> None:
         self.canvas = FigureCanvasTkAgg(
             figure=Figure(
                 figsize=(self.width / 100, self.height / 100),
@@ -850,6 +917,13 @@ class Graph(tk.Frame):
         self.toolbar = NavigationToolbar2Tk(self.canvas, self)
         self.toolbar.update()
         self.toolbar.place(relx=0.99, rely=0.99, anchor=tk.SE)
+        self.graph_switch_button = GraphSwitchButton(
+            master=self,
+            width=int(self.width * 0.1),
+            height=int(self.height * 0.05)
+        )
+        self.graph_switch_button.place(relx=0.99, rely=0.01, anchor=tk.NE)
+        tk.Misc.lower(self.canvas.get_tk_widget())
 
     def plot(self, figure: Figure) -> None:
         self.canvas.get_tk_widget().destroy()
@@ -861,6 +935,7 @@ class Graph(tk.Frame):
         )
         self.canvas.draw()
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        tk.Misc.lower(self.canvas.get_tk_widget())
         self.toolbar = NavigationToolbar2Tk(self.canvas, self)
         self.toolbar.update()
         self.toolbar.place(relx=0.99, rely=0.99, anchor=tk.SE)

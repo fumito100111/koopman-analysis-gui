@@ -20,6 +20,9 @@ class Monomials(object):
         self.degree = degree
         self.degrees = self._generate_degrees()
 
+    def __len__(self) -> int:
+        return self.degrees.shape[1]
+
     def lift(self, X: np.ndarray) -> np.ndarray:
         if X.ndim == 1:
             X = X[:, np.newaxis]
