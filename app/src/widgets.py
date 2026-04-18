@@ -314,7 +314,8 @@ class RegularizationOptionsSubPanel(tk.Frame):
         font.config(size=max(10, int(self.master.winfo_screenheight() / 70)))
         tk.Label(
             master=self,
-            text='Regularization : ',
+            # text='Regularization : ',
+            text='Penalty : ',
             font=font,
             fg=colors.SIDEBAR_FG,
             bg=colors.SIDEBAR_BG
@@ -331,7 +332,7 @@ class RegularizationOptionsSubPanel(tk.Frame):
                 value=option.value,
                 variable=self.selected_option,
                 command=lambda o=option: self.set_option(o)
-            ).place(relx=0.35, rely=0.5 + (i - 1) * 0.3, anchor=tk.W)
+            ).place(relx=0.25, rely=0.5 + (i - 1) * 0.3, anchor=tk.W)
         self.alpha_field = ParameterField(
             master=self,
             width=int(self.width * 0.3),
@@ -488,6 +489,7 @@ class DatasetPanel(tk.Frame):
         font.config(size=max(8, int(self.master.winfo_screenheight() / 80)))
         button_kwargs = {
             'master': self,
+            'width': int(self.width * 0.35),
             'text': 'Select dataset',
             'font': font,
             'fg': colors.FILEDIALOG_BUTTON_FG,
@@ -574,7 +576,7 @@ class AnalysisModesPanel(tk.Frame):
                 value=mode.value,
                 variable=self.selected_mode,
                 command=lambda m=mode: self.set_mode(m)
-            ).place(relx=(i // 2) * (1 / (len(AnalysisModes) // 2)) + 0.1, rely=0.35 * (i % 2 + 1), anchor=tk.NW)
+            ).place(relx=(i // 2) * (1 / (len(AnalysisModes) // 2)) + 0.05, rely=0.35 * (i % 2 + 1), anchor=tk.NW)
         self.selected_mode.set(AnalysisModes.Matrix.value)
         self.set_mode(AnalysisModes.Matrix)
 
