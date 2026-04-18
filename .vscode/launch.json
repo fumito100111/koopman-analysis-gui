@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "name": "Run Koopman Analysis GUI",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/app/main.py",
+            "console": "integratedTerminal"
+        }
+    ]
+}
