@@ -88,7 +88,7 @@ class AnalysisToolsPanel(tk.Frame):
             bg=colors.SIDEBAR_BG,
             fg=colors.SIDEBAR_FG
         )
-        self.label.place(relx=0.0, rely=0.0, anchor=tk.NW)
+        self.label.place(relx=0.02, rely=0.0, anchor=tk.NW)
         self.selected_tool = tk.StringVar()
         for i, tool in enumerate(AnalysisTools):
             text = tool.value.replace(' ', '\n')
