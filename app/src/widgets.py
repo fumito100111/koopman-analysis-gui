@@ -164,8 +164,11 @@ class ParameterField(tk.Frame):
             master=self,
             width=PARAMETER_MAX_LENGTH,
             font=font,
-            fg=colors.SIDEBAR_FG,
-            bg=colors.SIDEBAR_BG
+            fg=colors.PARAMETER_FIELD_FG,
+            bg=colors.PARAMETER_FIELD_BG,
+            highlightthickness=1,
+            highlightbackground=colors.PARAMETER_FIELD_DEACTIVE_BORDER,
+            highlightcolor=colors.PARAMETER_FIELD_ACTIVE_BORDER
         )
         self.field.pack(side=tk.RIGHT)
 
