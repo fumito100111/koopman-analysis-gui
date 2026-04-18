@@ -1,13 +1,14 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Callable
 import sys
+import math
 import tkinter as tk
 import tkinter.font as tkfont
 import tkinter.scrolledtext as stext
 import tkmacosx as mactk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from .utils import AnalysisTools
+from .utils import AnalysisTools, Parameters, PARAMETERS_NAME_MAX_LENGTH, PARAMETER_MAX_LENGTH
 from . import colors
 if TYPE_CHECKING:
     from .app import App
@@ -18,7 +19,6 @@ class RadioButton(tk.Frame):
     text: str
     value: str
     variable: tk.Variable
-    label: tk.Label
     radio_button: tk.Radiobutton
     def __init__(self, master: AnalysisToolsPanel, width: int, height: int, text: str, value: str, variable: tk.Variable, command: Callable[[], None] | None = None) -> None:
         super(RadioButton, self).__init__(
@@ -42,14 +42,13 @@ class RadioButton(tk.Frame):
     def layout(self) -> None:
         font = tkfont.nametofont('TkDefaultFont').copy()
         font.config(size=max(10, int(self.master.winfo_screenheight() / 70)))
-        self.label = tk.Label(
+        tk.Label(
             master=self,
             text=self.text,
             font=font,
             fg=colors.SIDEBAR_FG,
             bg=colors.SIDEBAR_BG
-        )
-        self.label.pack(side=tk.TOP)
+        ).pack(side=tk.TOP)
         self.radio_button = tk.Radiobutton(
             master=self,
             fg=colors.SIDEBAR_FG,
@@ -83,14 +82,13 @@ class AnalysisToolsPanel(tk.Frame):
     def layout(self) -> None:
         font = tkfont.nametofont('TkDefaultFont').copy()
         font.config(size=max(12, int(self.master.winfo_screenheight() / 60)), weight=tkfont.BOLD)
-        self.label = tk.Label(
+        tk.Label(
             master=self,
             text='Analysis Tools',
             font=font,
             fg=colors.SIDEBAR_FG,
             bg=colors.SIDEBAR_BG
-        )
-        self.label.place(relx=0.02, rely=0.0, anchor=tk.NW)
+        ).place(relx=0.02, rely=0.0, anchor=tk.NW)
         self.selected_tool = tk.StringVar()
         for i, tool in enumerate(AnalysisTools):
             text = tool.value.replace(' ', '\n')
@@ -130,6 +128,100 @@ class AnalysisToolsPanel(tk.Frame):
     def set_logarithmic_edmd(self) -> None:
         print('Selected Logarithmic EDMD')
         pass
+
+class ParameterField(tk.Frame):
+    width: int
+    height: int
+    field: tk.Entry
+    def __init__(self, master: ParametersPanel, width: int, height: int, text: str) -> None:
+        super(ParameterField, self).__init__(
+            master=master,
+            width=width,
+            height=height,
+            bg=colors.SIDEBAR_BG
+        )
+        self.width = width
+        self.height = height
+        self.text = text
+        self.initialize()
+
+    def initialize(self) -> None:
+        self.layout()
+
+    def layout(self) -> None:
+        font = tkfont.nametofont('TkDefaultFont').copy()
+        font.config(size=max(10, int(self.master.winfo_screenheight() / 70)))
+        tk.Label(
+            master=self,
+            text=self.text,
+            font=font,
+            fg=colors.SIDEBAR_FG,
+            bg=colors.SIDEBAR_BG,
+            width=PARAMETERS_NAME_MAX_LENGTH + 2,
+            anchor=tk.E
+        ).pack(side=tk.LEFT)
+        self.field = tk.Entry(
+            master=self,
+            width=PARAMETER_MAX_LENGTH,
+            font=font,
+            fg=colors.SIDEBAR_FG,
+            bg=colors.SIDEBAR_BG
+        )
+        self.field.pack(side=tk.RIGHT)
+
+class ParametersPanel(tk.Frame):
+    width: int
+    height: int
+    fields: dict[Parameters, ParameterField]
+    def __init__(self, master: Sidebar, width: int, height: int) -> None:
+        super(ParametersPanel, self).__init__(
+            master=master,
+            width=width,
+            height=height,
+            bg=colors.SIDEBAR_BG
+        )
+        self.width = width
+        self.height = height
+        self.initialize()
+
+    def initialize(self) -> None:
+        self.layout()
+
+    def layout(self) -> None:
+        font = tkfont.nametofont('TkDefaultFont').copy()
+        font.config(size=max(12, int(self.master.winfo_screenheight() / 60)), weight=tkfont.BOLD)
+        tk.Label(
+            master=self,
+            text='Parameters',
+            font=font,
+            fg=colors.SIDEBAR_FG,
+            bg=colors.SIDEBAR_BG
+        ).place(relx=0.02, rely=0.0, anchor=tk.NW)
+        self.fields = {}
+        self.fields[Parameters.dim] = ParameterField(
+            master=self,
+            width=self.width,
+            height=int(self.height / len(Parameters)),
+            text=f'{' ' * max(0, PARAMETERS_NAME_MAX_LENGTH - len(Parameters.dim.value))}{Parameters.dim.value} : '
+        )
+        self.fields[Parameters.dim].place(relx=0.05, rely=0.35, anchor=tk.W)
+        self.fields[Parameters.degree] = ParameterField(
+            master=self,
+            width=self.width,
+            height=int(self.height / len(Parameters)),
+            text=f'{' ' * max(0, PARAMETERS_NAME_MAX_LENGTH - len(Parameters.degree.value))}{Parameters.degree.value} : '
+        )
+        self.fields[Parameters.degree].place(relx=0.05, rely=0.85, anchor=tk.W)
+        self.fields[Parameters.dt] = ParameterField(
+            master=self,
+            width=self.width,
+            height=int(self.height / len(Parameters)),
+            text=f'{' ' * max(0, PARAMETERS_NAME_MAX_LENGTH - len(Parameters.dt.value))}{Parameters.dt.value} : '
+        )
+        self.fields[Parameters.dt].place(relx=0.95, rely=0.6, anchor=tk.E)
+
+    def get_parameters(self) -> dict[Parameters, str]:
+        return {parameter: self.fields[parameter].field.get() for parameter in Parameters}
 
 class AnalysisButton(tk.Frame):
     width: int
@@ -171,18 +263,23 @@ class AnalysisButton(tk.Frame):
 
     def analyze(self, event: tk.Event | None = None) -> None:
         print('Analyzing...')
+        print(f'Selected Tool: {self.master.analysis_tools_panel.selected_tool.get()}')
+        print(f'Parameters: {self.master.parameters_panel.get_parameters()}')
         pass
 
 class Sidebar(tk.Frame):
     width: int
     height: int
+    analysis_tools_panel: AnalysisToolsPanel
+    parameters_panel: ParametersPanel
+    analysis_button: AnalysisButton
     def __init__(self, master: App, width: int, height: int) -> None:
         super(Sidebar, self).__init__(
             master=master,
             width=width,
             height=height,
-            bg=colors.SIDEBAR_BG
-            # bg='lightblue'
+            # bg=colors.SIDEBAR_BG
+            bg='lightblue'
         )
         self.width = width
         self.height = height
@@ -193,16 +290,24 @@ class Sidebar(tk.Frame):
         self.layout()
 
     def layout(self) -> None:
-        AnalysisToolsPanel(
+        self.analysis_tools_panel = AnalysisToolsPanel(
             master=self,
             width=self.width,
             height=int(self.height * 0.15)
-        ).place(relx=0.0, rely=0.01, anchor=tk.NW)
-        AnalysisButton(
+        )
+        self.analysis_tools_panel.place(relx=0.0, rely=0.01, anchor=tk.NW)
+        self.parameters_panel = ParametersPanel(
+            master=self,
+            width=self.width,
+            height=int(self.height * 0.3)
+        )
+        self.parameters_panel.place(relx=0.0, rely=0.17, anchor=tk.NW)
+        self.analysis_button = AnalysisButton(
             master=self,
             width=self.width,
             height=int(self.height * 0.1)
-        ).place(relx=0.5, rely=1.0, anchor=tk.S)
+        )
+        self.analysis_button.place(relx=0.5, rely=1.0, anchor=tk.S)
 
 class Monitor(tk.Frame):
     width: int
