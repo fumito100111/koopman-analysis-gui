@@ -13,3 +13,5 @@ class Parameters(enum.StrEnum):
 
 PARAMETERS_NAME_MAX_LENGTH = max(len(parameter.value) for parameter in Parameters)
 PARAMETER_MAX_LENGTH = 5
+
+FILENAME_SHOW_MAX_LENGTH = 25

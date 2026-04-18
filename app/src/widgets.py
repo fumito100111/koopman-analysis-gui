@@ -4,11 +4,18 @@ import sys
 import math
 import tkinter as tk
 import tkinter.font as tkfont
+import tkinter.filedialog as tkfd
 import tkinter.scrolledtext as stext
 import tkmacosx as mactk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from .utils import AnalysisTools, Parameters, PARAMETERS_NAME_MAX_LENGTH, PARAMETER_MAX_LENGTH
+from .utils import (
+    AnalysisTools,
+    Parameters,
+    PARAMETERS_NAME_MAX_LENGTH,
+    PARAMETER_MAX_LENGTH,
+    FILENAME_SHOW_MAX_LENGTH
+)
 from . import colors
 if TYPE_CHECKING:
     from .app import App
@@ -226,6 +233,81 @@ class ParametersPanel(tk.Frame):
     def get_parameters(self) -> dict[Parameters, str]:
         return {parameter: self.fields[parameter].field.get() for parameter in Parameters}
 
+class DatasetPanel(tk.Frame):
+    width: int
+    height: int
+    selected_file: str
+    file_dialog_button: tk.Button | mactk.Button
+    label: tk.Label
+    def __init__(self, master: ParametersPanel, width: int, height: int) -> None:
+        super(DatasetPanel, self).__init__(
+            master=master,
+            width=width,
+            height=height,
+            bg=colors.SIDEBAR_BG
+        )
+        self.width = width
+        self.height = height
+        self.selected_file = ''
+        self.initialize()
+
+    def initialize(self) -> None:
+        self.layout()
+
+    def layout(self) -> None:
+        font = tkfont.nametofont('TkDefaultFont').copy()
+        font.config(size=max(12, int(self.master.winfo_screenheight() / 60)), weight=tkfont.BOLD)
+        tk.Label(
+            master=self,
+            text='Dataset',
+            font=font,
+            fg=colors.SIDEBAR_FG,
+            bg=colors.SIDEBAR_BG
+        ).place(relx=0.02, rely=0.0, anchor=tk.NW)
+        font = tkfont.nametofont('TkDefaultFont').copy()
+        font.config(size=max(8, int(self.master.winfo_screenheight() / 80)))
+        button_kwargs = {
+            'master': self,
+            'text': 'Select dataset',
+            'font': font,
+            'fg': colors.FILEDIALOG_BUTTON_FG,
+            'bg': colors.FILEDIALOG_BUTTON_BG,
+            'activeforeground': colors.FILEDIALOG_BUTTON_ACTIVE_FG,
+            'activebackground': colors.FILEDIALOG_BUTTON_ACTIVE_BG,
+            'command': self.select_dataset
+        }
+        if sys.platform == 'darwin':
+            self.file_dialog_button = mactk.Button(**button_kwargs, borderless=True)
+        else:
+            self.file_dialog_button = tk.Button(**button_kwargs)
+        self.file_dialog_button.place(relx=0.05, rely=0.6, anchor=tk.W)
+        self.label = tk.Label(
+            master=self,
+            text='No dataset selected',
+            font=font,
+            fg=colors.FILENAME_LABEL_FG,
+            bg=colors.FILENAME_LABEL_BG,
+            width=FILENAME_SHOW_MAX_LENGTH
+        )
+        self.label.place(relx=0.95, rely=0.6, anchor=tk.E)
+
+    def select_dataset(self, event: tk.Event | None = None) -> None:
+        file = tkfd.askopenfilename(
+            title='Select dataset',
+            filetypes=[
+                ('Numpy Zip files', '*.npz')
+            ]
+        )
+        if file:
+            self.selected_file = file
+            if len(file) > FILENAME_SHOW_MAX_LENGTH:
+                prefix = '.../'
+                filename = file.split('/')[-1]
+                filename = f'{prefix}{filename[-(FILENAME_SHOW_MAX_LENGTH - len(prefix)):]}'
+            else:
+                filename = file
+            self.label.config(text=filename)
+
 class AnalysisButton(tk.Frame):
     width: int
     height: int
@@ -275,6 +357,7 @@ class Sidebar(tk.Frame):
     height: int
     analysis_tools_panel: AnalysisToolsPanel
     parameters_panel: ParametersPanel
+    dataset_panel: DatasetPanel
     analysis_button: AnalysisButton
     def __init__(self, master: App, width: int, height: int) -> None:
         super(Sidebar, self).__init__(
@@ -305,6 +388,12 @@ class Sidebar(tk.Frame):
             height=int(self.height * 0.3)
         )
         self.parameters_panel.place(relx=0.0, rely=0.17, anchor=tk.NW)
+        self.dataset_panel = DatasetPanel(
+            master=self,
+            width=self.width,
+            height=int(self.height * 0.15)
+        )
+        self.dataset_panel.place(relx=0.0, rely=0.48, anchor=tk.NW)
         self.analysis_button = AnalysisButton(
             master=self,
             width=self.width,
