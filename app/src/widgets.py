@@ -20,7 +20,7 @@ class RadioButton(tk.Frame):
     variable: tk.Variable
     label: tk.Label
     radio_button: tk.Radiobutton
-    def __init__(self, master: tk.Misc, width: int, height: int, text: str, value: str, variable: tk.Variable, command: Callable[[], None] | None = None) -> None:
+    def __init__(self, master: AnalysisToolsPanel, width: int, height: int, text: str, value: str, variable: tk.Variable, command: Callable[[], None] | None = None) -> None:
         super(RadioButton, self).__init__(
             master=master,
             width=width,
@@ -65,7 +65,7 @@ class AnalysisToolsPanel(tk.Frame):
     height: int
     previous_tool: AnalysisTools
     selected_tool: tk.StringVar
-    def __init__(self, master: tk.Misc, width: int, height: int) -> None:
+    def __init__(self, master: Sidebar, width: int, height: int) -> None:
         super(AnalysisToolsPanel, self).__init__(
             master=master,
             width=width,
@@ -135,7 +135,7 @@ class AnalysisButton(tk.Frame):
     width: int
     height: int
     button: tk.Button | mactk.Button
-    def __init__(self, master: tk.Misc, width: int, height: int) -> None:
+    def __init__(self, master: Sidebar, width: int, height: int) -> None:
         super(AnalysisButton, self).__init__(
             master=master,
             width=width,
