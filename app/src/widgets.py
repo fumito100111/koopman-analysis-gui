@@ -128,16 +128,13 @@ class AnalysisToolsPanel(tk.Frame):
         self.previous_tool = tool
 
     def set_edmd(self) -> None:
-        print('Selected EDMD')
-        pass
+        self.master.parameters_panel.fields[Parameters.dt].field.config(state=tk.DISABLED)
 
     def set_gedmd(self) -> None:
-        print('Selected gEDMD')
-        pass
+        self.master.parameters_panel.fields[Parameters.dt].field.config(state=tk.NORMAL)
 
     def set_logarithmic_edmd(self) -> None:
-        print('Selected Logarithmic EDMD')
-        pass
+        self.master.parameters_panel.fields[Parameters.dt].field.config(state=tk.NORMAL)
 
 class ParameterField(tk.Frame):
     width: int
@@ -234,6 +231,10 @@ class ParametersPanel(tk.Frame):
             text=f'{Parameters.dt.value} : '
         )
         self.fields[Parameters.dt].place(relx=0.9, rely=0.25, anchor=tk.E)
+        self.fields[Parameters.dt].field.config(
+            disabledforeground=colors.PARAMETER_FIELD_DISABLED_FG,
+            disabledbackground=colors.PARAMETER_FIELD_DISABLED_BG
+        )
         self.fields[Parameters.train_ratio] = ParameterField(
             master=self,
             width=self.width,
@@ -639,10 +640,46 @@ class AnalysisButton(tk.Frame):
         self.button.pack(fill=tk.BOTH, expand=True)
 
     def analyze(self, event: tk.Event | None = None) -> None:
-        print('Analyzing...')
-        print(f'Selected Tool: {self.master.analysis_tools_panel.selected_tool.get()}')
-        print(f'Parameters: {self.master.parameters_panel.get_parameters()}')
-        pass
+        tool = self.master.analysis_tools_panel.selected_tool.get()
+        dim = self.master.parameters_panel.get_dim()
+        if dim is None:
+            self.master.master.monitor.stdout('Invalid dimension. Please enter a positive integer.')
+            return
+        degree = self.master.parameters_panel.get_degree()
+        if degree is None:
+            self.master.master.monitor.stdout('Invalid degree. Please enter a positive integer.')
+            return
+        dt = self.master.parameters_panel.get_dt()
+        if dt is None and tool != AnalysisTools.EDMD.value:
+            self.master.master.monitor.stdout('Invalid time step. Please enter a positive number.')
+            return
+        train_ratio = self.master.parameters_panel.get_train_ratio()
+        if train_ratio is None:
+            self.master.master.monitor.stdout('Invalid train ratio. Please enter a value where 0.0 < ratio <= 1.0.')
+            return
+        regularization = self.master.parameters_panel.regularization_panel.selected_option.get()
+        alpha = self.master.parameters_panel.regularization_panel.get_alpha() if regularization != RegularizationOptions.None_.value else None
+        if regularization != RegularizationOptions.None_.value and alpha is None:
+            self.master.master.monitor.stdout('Invalid alpha. Please enter a positive number.')
+            return
+        operator_option = self.master.operator_options_panel.selected_option.get()
+        data_file = self.master.dataset_panel.selected_file
+        if not data_file:
+            self.master.master.monitor.stdout('No dataset selected. Please select a dataset.')
+            return
+        analysis_mode = self.master.analysis_modes_panel.selected_mode.get()
+        self.master.master.monitor.stdout(f'Analyzing with {tool} ...')
+        self.master.master.monitor.stdout(f'< Settings >')
+        self.master.master.monitor.stdout(f'  - Parameters')
+        self.master.master.monitor.stdout(f'    - Dimension        : {dim}')
+        self.master.master.monitor.stdout(f'    - Degree           : {degree}')
+        self.master.master.monitor.stdout(f'    - Time step        : {dt}')
+        self.master.master.monitor.stdout(f'    - Train ratio      : {train_ratio}')
+        self.master.master.monitor.stdout(f'    - Regularization   : {regularization}' + (f' (alpha: {alpha})' if regularization != RegularizationOptions.None_.value else ''))
+        self.master.master.monitor.stdout(f'    - Operator Options : {operator_option}')
+        self.master.master.monitor.stdout(f'  - Dataset : {data_file}')
+        self.master.master.monitor.stdout(f'  - Analysis Mode : {analysis_mode}')
+        self.master.master.monitor.stdout(f'------------------------------')
 
 class Sidebar(tk.Frame):
     width: int
@@ -669,18 +706,18 @@ class Sidebar(tk.Frame):
         self.layout()
 
     def layout(self) -> None:
-        self.analysis_tools_panel = AnalysisToolsPanel(
-            master=self,
-            width=self.width,
-            height=int(self.height * 0.15)
-        )
-        self.analysis_tools_panel.place(relx=0.0, rely=0.01, anchor=tk.NW)
         self.parameters_panel = ParametersPanel(
             master=self,
             width=self.width,
             height=int(self.height * 0.3)
         )
         self.parameters_panel.place(relx=0.0, rely=0.17, anchor=tk.NW)
+        self.analysis_tools_panel = AnalysisToolsPanel(
+            master=self,
+            width=self.width,
+            height=int(self.height * 0.15)
+        )
+        self.analysis_tools_panel.place(relx=0.0, rely=0.01, anchor=tk.NW)
         self.operator_options_panel = OperatorOptionsPanel(
             master=self,
             width=self.width,
