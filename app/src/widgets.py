@@ -15,6 +15,7 @@ from .utils import (
     Parameters,
     PARAMETERS_NAME_MAX_LENGTH,
     PARAMETER_MAX_LENGTH,
+    OperatorOptions,
     FILENAME_SHOW_MAX_LENGTH
 )
 from . import colors
@@ -216,7 +217,7 @@ class ParametersPanel(tk.Frame):
             height=int(self.height / len(Parameters)),
             text=f'{' ' * max(0, PARAMETERS_NAME_MAX_LENGTH - len(Parameters.dim.value))}{Parameters.dim.value} : '
         )
-        self.fields[Parameters.dim].place(relx=0.01, rely=0.35, anchor=tk.W)
+        self.fields[Parameters.dim].place(relx=0.01, rely=0.45, anchor=tk.W)
         self.fields[Parameters.degree] = ParameterField(
             master=self,
             width=self.width,
@@ -230,7 +231,7 @@ class ParametersPanel(tk.Frame):
             height=int(self.height / len(Parameters)),
             text=f'{' ' * max(0, PARAMETERS_NAME_MAX_LENGTH - len(Parameters.dt.value))}{Parameters.dt.value} : '
         )
-        self.fields[Parameters.dt].place(relx=0.9, rely=0.35, anchor=tk.E)
+        self.fields[Parameters.dt].place(relx=0.9, rely=0.45, anchor=tk.E)
         self.fields[Parameters.train_ratio] = ParameterField(
             master=self,
             width=self.width,
@@ -275,13 +276,86 @@ class ParametersPanel(tk.Frame):
         except ValueError:
             return None
 
+class OperatorOptionsPanel(tk.Frame):
+    width: int
+    height: int
+    previous_option: OperatorOptions
+    selected_option: tk.StringVar
+    def __init__(self, master: Sidebar, width: int, height: int) -> None:
+        super(OperatorOptionsPanel, self).__init__(
+            master=master,
+            width=width,
+            height=height,
+            bg=colors.SIDEBAR_BG
+        )
+        self.width = width
+        self.height = height
+        self.previous_option = None
+        self.initialize()
+
+    def initialize(self) -> None:
+        self.layout()
+
+    def layout(self) -> None:
+        font = tkfont.nametofont('TkDefaultFont').copy()
+        font.config(size=max(12, int(self.master.winfo_screenheight() / 60)), weight=tkfont.BOLD)
+        tk.Label(
+            master=self,
+            text='Operator Options',
+            font=font,
+            fg=colors.SIDEBAR_FG,
+            bg=colors.SIDEBAR_BG
+        ).place(relx=0.02, rely=0.0, anchor=tk.NW)
+        self.selected_option = tk.StringVar()
+        font = tkfont.nametofont('TkDefaultFont').copy()
+        font.config(size=max(10, int(self.master.winfo_screenheight() / 70)))
+        tk.Radiobutton(
+            master=self,
+            text=OperatorOptions.Left.value,
+            font=font,
+            fg=colors.SIDEBAR_FG,
+            bg=colors.SIDEBAR_BG,
+            value=OperatorOptions.Left.value,
+            variable=self.selected_option,
+            command=lambda o=OperatorOptions.Left: self.set_option(o)
+        ).place(relx=0.25, rely=0.5, anchor=tk.NW)
+        tk.Radiobutton(
+            master=self,
+            text=OperatorOptions.Right.value,
+            font=font,
+            fg=colors.SIDEBAR_FG,
+            bg=colors.SIDEBAR_BG,
+            value=OperatorOptions.Right.value,
+            variable=self.selected_option,
+            command=lambda o=OperatorOptions.Right: self.set_option(o)
+        ).place(relx=0.75, rely=0.5, anchor=tk.NE)
+        self.selected_option.set(OperatorOptions.Left.value)
+        self.set_option(OperatorOptions.Left)
+
+    def set_option(self, option: OperatorOptions) -> None:
+        if self.previous_option == option:
+            return
+        if option == OperatorOptions.Left:
+            self.set_left()
+        elif option == OperatorOptions.Right:
+            self.set_right()
+        self.previous_option = option
+
+    def set_left(self) -> None:
+        print('Selected Left operator')
+        pass
+
+    def set_right(self) -> None:
+        print('Selected Right operator')
+        pass
+
 class DatasetPanel(tk.Frame):
     width: int
     height: int
     selected_file: str
     file_dialog_button: tk.Button | mactk.Button
     label: tk.Label
-    def __init__(self, master: ParametersPanel, width: int, height: int) -> None:
+    def __init__(self, master: Sidebar, width: int, height: int) -> None:
         super(DatasetPanel, self).__init__(
             master=master,
             width=width,
@@ -385,15 +459,6 @@ class AnalysisModesPanel(tk.Frame):
         self.selected_mode = tk.StringVar()
         for i, mode in enumerate(AnalysisModes):
             text = mode.value
-            # RadioButton(
-            #     master=self,
-            #     width=int(self.width / len(AnalysisModes)),
-            #     height=int(self.height * 0.7),
-            #     text=text,
-            #     value=mode.value,
-            #     variable=self.selected_mode,
-            #     command=lambda m=mode: self.set_mode(m)
-            # ).place(relx=i / len(AnalysisModes), rely=0.4, anchor=tk.NW)
             font = tkfont.nametofont('TkDefaultFont').copy()
             font.config(size=max(10, int(self.master.winfo_screenheight() / 70)))
             tk.Radiobutton(
@@ -406,7 +471,6 @@ class AnalysisModesPanel(tk.Frame):
                 variable=self.selected_mode,
                 command=lambda m=mode: self.set_mode(m)
             ).place(relx=(i // 2) * (1 / (len(AnalysisModes) // 2)) + 0.1, rely=0.35 * (i % 2 + 1), anchor=tk.NW)
-
         self.selected_mode.set(AnalysisModes.Matrix.value)
         self.set_mode(AnalysisModes.Matrix)
 
@@ -488,6 +552,7 @@ class Sidebar(tk.Frame):
     height: int
     analysis_tools_panel: AnalysisToolsPanel
     parameters_panel: ParametersPanel
+    operator_options_panel: OperatorOptionsPanel
     dataset_panel: DatasetPanel
     analysis_modes_panel: AnalysisModesPanel
     analysis_button: AnalysisButton
@@ -520,18 +585,24 @@ class Sidebar(tk.Frame):
             height=int(self.height * 0.3)
         )
         self.parameters_panel.place(relx=0.0, rely=0.17, anchor=tk.NW)
+        self.operator_options_panel = OperatorOptionsPanel(
+            master=self,
+            width=self.width,
+            height=int(self.height * 0.09)
+        )
+        self.operator_options_panel.place(relx=0.0, rely=0.48, anchor=tk.NW)
         self.dataset_panel = DatasetPanel(
             master=self,
             width=self.width,
             height=int(self.height * 0.15)
         )
-        self.dataset_panel.place(relx=0.0, rely=0.48, anchor=tk.NW)
+        self.dataset_panel.place(relx=0.0, rely=0.58, anchor=tk.NW)
         self.analysis_modes_panel = AnalysisModesPanel(
             master=self,
             width=self.width,
             height=int(self.height * 0.15)
         )
-        self.analysis_modes_panel.place(relx=0.0, rely=0.64, anchor=tk.NW)
+        self.analysis_modes_panel.place(relx=0.0, rely=0.74, anchor=tk.NW)
         self.analysis_button = AnalysisButton(
             master=self,
             width=self.width,

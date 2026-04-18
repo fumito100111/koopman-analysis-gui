@@ -18,6 +18,10 @@ class Parameters(enum.StrEnum):
     dt = 'Time Step'
     train_ratio = 'Train Ratio'
 
+class OperatorOptions(enum.StrEnum):
+    Left = 'Left'
+    Right = 'Right'
+
 PARAMETERS_NAME_MAX_LENGTH = max(len(parameter.value) for parameter in Parameters)
 PARAMETER_MAX_LENGTH = 5
 FILENAME_SHOW_MAX_LENGTH = 25
