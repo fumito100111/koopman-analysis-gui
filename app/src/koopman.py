@@ -368,7 +368,7 @@ def koopman_analysis(
     else:
         return KoopmanAnalysisResponse(
             status=KoopmanAnalysisStatus.Failure,
-            message=f'Error: Invalid regularization option \'{regularization}\'.'
+            message=f'Error: Invalid penalty option \'{regularization}\'.'
         )
 
     if tool == AnalysisTools.EDMD:

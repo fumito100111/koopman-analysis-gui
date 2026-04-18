@@ -314,7 +314,6 @@ class RegularizationOptionsSubPanel(tk.Frame):
         font.config(size=max(10, int(self.master.winfo_screenheight() / 70)))
         tk.Label(
             master=self,
-            # text='Regularization : ',
             text='Penalty : ',
             font=font,
             fg=colors.SIDEBAR_FG,
@@ -687,7 +686,7 @@ class AnalysisButton(tk.Frame):
         self.master.master.monitor.stdout(f'    - Degree           : {degree}')
         self.master.master.monitor.stdout(f'    - Time step        : {dt}')
         self.master.master.monitor.stdout(f'    - Train ratio      : {train_ratio}')
-        self.master.master.monitor.stdout(f'    - Regularization   : {regularization}' + (f' (alpha: {alpha})' if regularization != RegularizationOptions.None_.value else ''))
+        self.master.master.monitor.stdout(f'    - Penalty          : {regularization}' + (f' (alpha: {alpha})' if regularization != RegularizationOptions.None_.value else ''))
         self.master.master.monitor.stdout(f'    - Operator Options : {operator_option}')
         self.master.master.monitor.stdout(f'  - Dataset : {data_file}')
         self.master.master.monitor.stdout(f'  - Analysis Mode : {analysis_mode}')
