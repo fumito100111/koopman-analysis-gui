@@ -11,6 +11,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from .utils import (
     AnalysisTools,
+    AnalysisModes,
     Parameters,
     PARAMETERS_NAME_MAX_LENGTH,
     PARAMETER_MAX_LENGTH,
@@ -354,6 +355,8 @@ class DatasetPanel(tk.Frame):
 class AnalysisModesPanel(tk.Frame):
     width: int
     height: int
+    previous_mode: AnalysisModes
+    selected_mode: tk.StringVar
     def __init__(self, master: Sidebar, width: int, height: int) -> None:
         super(AnalysisModesPanel, self).__init__(
             master=master,
@@ -363,6 +366,7 @@ class AnalysisModesPanel(tk.Frame):
         )
         self.width = width
         self.height = height
+        self.previous_mode = None
         self.initialize()
 
     def initialize(self) -> None:
@@ -378,6 +382,62 @@ class AnalysisModesPanel(tk.Frame):
             fg=colors.SIDEBAR_FG,
             bg=colors.SIDEBAR_BG
         ).place(relx=0.02, rely=0.0, anchor=tk.NW)
+        self.selected_mode = tk.StringVar()
+        for i, mode in enumerate(AnalysisModes):
+            text = mode.value
+            # RadioButton(
+            #     master=self,
+            #     width=int(self.width / len(AnalysisModes)),
+            #     height=int(self.height * 0.7),
+            #     text=text,
+            #     value=mode.value,
+            #     variable=self.selected_mode,
+            #     command=lambda m=mode: self.set_mode(m)
+            # ).place(relx=i / len(AnalysisModes), rely=0.4, anchor=tk.NW)
+            font = tkfont.nametofont('TkDefaultFont').copy()
+            font.config(size=max(10, int(self.master.winfo_screenheight() / 70)))
+            tk.Radiobutton(
+                master=self,
+                text=text,
+                font=font,
+                fg=colors.SIDEBAR_FG,
+                bg=colors.SIDEBAR_BG,
+                value=mode.value,
+                variable=self.selected_mode,
+                command=lambda m=mode: self.set_mode(m)
+            ).place(relx=(i // 2) * (1 / (len(AnalysisModes) // 2)) + 0.1, rely=0.35 * (i % 2 + 1), anchor=tk.NW)
+
+        self.selected_mode.set(AnalysisModes.Matrix.value)
+        self.set_mode(AnalysisModes.Matrix)
+
+    def set_mode(self, mode: AnalysisModes) -> None:
+        if self.previous_mode == mode:
+            return
+        if mode == AnalysisModes.Matrix:
+            self.set_matrix()
+        elif mode == AnalysisModes.Spectrum:
+            self.set_spectrum()
+        elif mode == AnalysisModes.Modes:
+            self.set_modes()
+        elif mode == AnalysisModes.Eigenfunctions:
+            self.set_eigenfunctions()
+        self.previous_mode = mode
+
+    def set_matrix(self) -> None:
+        print('Selected Matrix mode')
+        pass
+
+    def set_spectrum(self) -> None:
+        print('Selected Spectrum mode')
+        pass
+
+    def set_modes(self) -> None:
+        print('Selected Modes mode')
+        pass
+
+    def set_eigenfunctions(self) -> None:
+        print('Selected Eigenfunctions mode')
+        pass
 
 class AnalysisButton(tk.Frame):
     width: int
@@ -469,7 +529,7 @@ class Sidebar(tk.Frame):
         self.analysis_modes_panel = AnalysisModesPanel(
             master=self,
             width=self.width,
-            height=int(self.height * 0.25)
+            height=int(self.height * 0.15)
         )
         self.analysis_modes_panel.place(relx=0.0, rely=0.64, anchor=tk.NW)
         self.analysis_button = AnalysisButton(

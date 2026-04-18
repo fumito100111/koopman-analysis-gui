@@ -6,6 +6,12 @@ class AnalysisTools(enum.StrEnum):
     gEDMD = 'gEDMD'
     LogarithmicEDMD = 'Logarithmic EDMD'
 
+class AnalysisModes(enum.StrEnum):
+    Matrix = 'Matrix'
+    Spectrum = 'Spectrum'
+    Modes = 'Modes'
+    Eigenfunctions = 'Eigenfunctions'
+
 class Parameters(enum.StrEnum):
     dim = 'Dimension'
     degree = 'Degree'
@@ -14,5 +20,4 @@ class Parameters(enum.StrEnum):
 
 PARAMETERS_NAME_MAX_LENGTH = max(len(parameter.value) for parameter in Parameters)
 PARAMETER_MAX_LENGTH = 5
-
 FILENAME_SHOW_MAX_LENGTH = 25
