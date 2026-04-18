@@ -1,8 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Callable
+import sys
 import tkinter as tk
 import tkinter.font as tkfont
 import tkinter.scrolledtext as stext
+import tkmacosx as mactk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from .utils import AnalysisTools
@@ -44,14 +46,14 @@ class RadioButton(tk.Frame):
             master=self,
             text=self.text,
             font=font,
-            bg=colors.SIDEBAR_BG,
-            fg=colors.SIDEBAR_FG
+            fg=colors.SIDEBAR_FG,
+            bg=colors.SIDEBAR_BG
         )
         self.label.pack(side=tk.TOP)
         self.radio_button = tk.Radiobutton(
             master=self,
-            bg=colors.SIDEBAR_BG,
             fg=colors.SIDEBAR_FG,
+            bg=colors.SIDEBAR_BG,
             value=self.value,
             variable=self.variable,
             command=self.command
@@ -85,8 +87,8 @@ class AnalysisToolsPanel(tk.Frame):
             master=self,
             text='Analysis Tools',
             font=font,
-            bg=colors.SIDEBAR_BG,
-            fg=colors.SIDEBAR_FG
+            fg=colors.SIDEBAR_FG,
+            bg=colors.SIDEBAR_BG
         )
         self.label.place(relx=0.02, rely=0.0, anchor=tk.NW)
         self.selected_tool = tk.StringVar()
@@ -129,6 +131,48 @@ class AnalysisToolsPanel(tk.Frame):
         print('Selected Logarithmic EDMD')
         pass
 
+class AnalysisButton(tk.Frame):
+    width: int
+    height: int
+    button: tk.Button | mactk.Button
+    def __init__(self, master: tk.Misc, width: int, height: int) -> None:
+        super(AnalysisButton, self).__init__(
+            master=master,
+            width=width,
+            height=height,
+            bg=colors.SIDEBAR_BG
+        )
+        self.width = width
+        self.height = height
+        self.initialize()
+
+    def initialize(self) -> None:
+        self.pack_propagate(False)
+        self.layout()
+
+    def layout(self) -> None:
+        font = tkfont.nametofont('TkDefaultFont').copy()
+        font.config(size=max(14, int(self.master.winfo_screenheight() / 50)), weight=tkfont.BOLD)
+        button_kwargs = {
+            'master': self,
+            'text': 'Run Analysis',
+            'font': font,
+            'fg': colors.ANALYSIS_BUTTON_FG,
+            'bg': colors.ANALYSIS_BUTTON_BG,
+            'activeforeground': colors.ANALYSIS_BUTTON_ACTIVE_FG,
+            'activebackground': colors.ANALYSIS_BUTTON_ACTIVE_BG,
+            'command': self.analyze
+        }
+        if sys.platform == 'darwin':
+            self.button = mactk.Button(**button_kwargs, borderless=True)
+        else:
+            self.button = tk.Button(**button_kwargs)
+        self.button.pack(fill=tk.BOTH, expand=True)
+
+    def analyze(self, event: tk.Event | None = None) -> None:
+        print('Analyzing...')
+        pass
+
 class Sidebar(tk.Frame):
     width: int
     height: int
@@ -137,8 +181,8 @@ class Sidebar(tk.Frame):
             master=master,
             width=width,
             height=height,
-            # bg=colors.SIDEBAR_BG,
-            bg='lightblue'
+            bg=colors.SIDEBAR_BG
+            # bg='lightblue'
         )
         self.width = width
         self.height = height
@@ -154,8 +198,11 @@ class Sidebar(tk.Frame):
             width=self.width,
             height=int(self.height * 0.15)
         ).place(relx=0.0, rely=0.01, anchor=tk.NW)
-
-
+        AnalysisButton(
+            master=self,
+            width=self.width,
+            height=int(self.height * 0.1)
+        ).place(relx=0.5, rely=1.0, anchor=tk.S)
 
 class Monitor(tk.Frame):
     width: int
