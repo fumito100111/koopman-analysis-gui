@@ -274,6 +274,8 @@ class DatasetPanel(tk.Frame):
             'bg': colors.FILEDIALOG_BUTTON_BG,
             'activeforeground': colors.FILEDIALOG_BUTTON_ACTIVE_FG,
             'activebackground': colors.FILEDIALOG_BUTTON_ACTIVE_BG,
+            'bordercolor': colors.FILEDIALOG_BUTTON_BORDER,
+            'highlightthickness': 1,
             'command': self.select_dataset
         }
         if sys.platform == 'darwin':
