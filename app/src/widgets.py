@@ -1,15 +1,18 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
 import tkinter as tk
 import tkinter.font as tkfont
 import tkinter.scrolledtext as stext
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from . import colors
+if TYPE_CHECKING:
+    from .app import App
 
 class Sidebar(tk.Frame):
     width: int
     height: int
-    def __init__(self, master: tk.Misc, width: int, height: int) -> None:
+    def __init__(self, master: App, width: int, height: int) -> None:
         super(Sidebar, self).__init__(
             master=master,
             width=width,
@@ -27,7 +30,7 @@ class Monitor(tk.Frame):
     width: int
     height: int
     textbox: stext.ScrolledText
-    def __init__(self, master: tk.Misc, width: int, height: int) -> None:
+    def __init__(self, master: App, width: int, height: int) -> None:
         super(Monitor, self).__init__(
             master=master,
             width=width,
@@ -70,7 +73,7 @@ class Graph(tk.Frame):
     width: int
     height: int
     canvas: FigureCanvasTkAgg
-    def __init__(self, master: tk.Misc, width: int, height: int) -> None:
+    def __init__(self, master: App, width: int, height: int) -> None:
         super(Graph, self).__init__(
             master=master,
             width=width,
