@@ -47,7 +47,8 @@ function update() {
   git pull origin main || error "Failed to update application from repository."
   setup
   move_executable
-  echo "\nUpdated successfully."
+  echo ""
+  echo "Updated successfully."
 }
 
 case "$1" in

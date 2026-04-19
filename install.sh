@@ -67,6 +67,8 @@ function update() {
   git pull origin main || error "Failed to update application from repository."
   setup
   move_executable
+  echo ""
+  echo "Updated successfully."
 }
 
 function install() {
@@ -85,7 +87,6 @@ function install() {
   if [ -d "$APP_DATA" ]; then
     echo "Already installed at $APP_DATA."
     update
-    echo "\nUpdated successfully."
     exit 0
   fi
 
@@ -97,6 +98,8 @@ function install() {
   cd "$APP_DATA" || error "Failed to navigate to application directory at $APP_DATA."
   setup
   move_executable
+  echo ""
+  echo "Installed successfully. You can run the application by executing 'kagui' in your terminal."
 }
 
 install
