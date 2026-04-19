@@ -330,7 +330,7 @@ def koopman_analysis(
     if not os.path.isfile(data_file):
         return KoopmanAnalysisResponse(
             status=KoopmanAnalysisStatus.Failure,
-            message=f'Error: File \'{data_file}\' not found.'
+            message=f'Error: File \'{data_file}\' not found.\n'
         )
     try:
         data = np.load(data_file)
@@ -339,19 +339,19 @@ def koopman_analysis(
     except Exception as e:
         return KoopmanAnalysisResponse(
             status=KoopmanAnalysisStatus.Failure,
-            message=f'Error: Failed to load data from \'{data_file}\'.\n{str(e)}'
+            message=f'Error: Failed to load data from \'{data_file}\'.\n{str(e)}\n'
         )
 
     if X.shape != Y.shape:
         return KoopmanAnalysisResponse(
             status=KoopmanAnalysisStatus.Failure,
-            message='Error: Shapes of X and Y do not match.'
+            message='Error: Shapes of X and Y do not match.\n '
         )
 
     if X.shape[0] != dim:
         return KoopmanAnalysisResponse(
             status=KoopmanAnalysisStatus.Failure,
-            message=f'Error: Dimension of data ({X.shape[0]}) does not match specified dimension ({dim}).'
+            message=f'Error: Dimension of data ({X.shape[0]}) does not match specified dimension ({dim}).\n'
         )
 
     train_X = X[:, :int(X.shape[1] * train_ratio)]
@@ -368,7 +368,7 @@ def koopman_analysis(
     else:
         return KoopmanAnalysisResponse(
             status=KoopmanAnalysisStatus.Failure,
-            message=f'Error: Invalid penalty option \'{regularization}\'.'
+            message=f'Error: Invalid penalty option \'{regularization}\'.\n'
         )
 
     if tool == AnalysisTools.EDMD:
@@ -415,7 +415,7 @@ def koopman_analysis(
     else:
         return KoopmanAnalysisResponse(
             status=KoopmanAnalysisStatus.Failure,
-            message=f'Error: Invalid analysis tool \'{tool}\'.'
+            message=f'Error: Invalid analysis tool \'{tool}\'.\n'
         )
 
     evals = evaluate(tool, test_X, test_Y)
