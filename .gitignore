@@ -2,7 +2,8 @@
 .DS_Store
 
 # VSCode
-.vscode/
+.vscode/*
+!.vscode/launch.json
 
 # Environments
 .env
