@@ -98,6 +98,8 @@ function install() {
   cd "$APP_DATA" || error "Failed to navigate to application directory at $APP_DATA."
   setup
   move_executable
+  echo ""
+  echo "Installed successfully. You can run the application by executing 'kagui' in your terminal."
 }
 
 install
