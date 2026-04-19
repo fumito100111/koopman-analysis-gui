@@ -418,6 +418,14 @@ def koopman_analysis(
             message=f'Error: Invalid analysis tool \'{tool}\'.\n'
         )
 
+    message = f'\nTraining Results:\n'
+    train_evals = evaluate(tool, train_X, train_Y)
+    metrics_max_length = max(len(metric) for metric in train_evals.keys())
+    message += f'  - Data Number: {train_X.shape[1]}\n'
+    message += f'  - Error      :\n'
+    for metric, value in train_evals.items():
+        message += f'    - {metric:>{metrics_max_length}}: {value:.4e}\n'
+
     if test_X.shape[1] == 0:
         return KoopmanAnalysisResponse(
             status=KoopmanAnalysisStatus.Success,
@@ -426,11 +434,13 @@ def koopman_analysis(
             tool=tool
         )
 
-    evals = evaluate(tool, test_X, test_Y)
-    message = '\nEvaluation :\n'
-    metrics_max_length = max(len(metric) for metric in evals.keys())
-    for metric, value in evals.items():
-        message += f'  - {metric:>{metrics_max_length}}: {value:.4e}\n'
+    message += '\nTest Results:\n'
+    test_evals = evaluate(tool, test_X, test_Y)
+    metrics_max_length = max(len(metric) for metric in test_evals.keys())
+    message += f'  - Data Number: {test_X.shape[1]}\n'
+    message += f'  - Error      :\n'
+    for metric, value in test_evals.items():
+        message += f'    - {metric:>{metrics_max_length}}: {value:.4e}\n'
 
     return KoopmanAnalysisResponse(
         status=KoopmanAnalysisStatus.Success,
