@@ -20,8 +20,9 @@ function setup() {
 }
 
 function usage() {
-  echo "Usage: ${COMMAND} [run]"
+  echo "Usage: ${COMMAND} [run | update]"
   echo "  run   - Run the Koopman Analysis GUI application"
+  echo "  update - Update the application from the repository"
 }
 
 function move_executable() {
@@ -46,6 +47,7 @@ function update() {
   git pull origin main || error "Failed to update application from repository."
   setup
   move_executable
+  echo "\nUpdated successfully."
 }
 
 case "$1" in

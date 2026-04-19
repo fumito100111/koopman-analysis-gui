@@ -40,6 +40,12 @@ Run the following command in your terminal to install the application:
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/fumito100111/koopman-analysis-gui/HEAD/install.sh)"
 ```
 
+If you have already installed the application, you can update it by running the following command:
+
+```bash
+kagui update
+```
+
 ## Usage
 
 ### How to launch the application
