@@ -604,11 +604,13 @@ class AnalysisModesPanel(tk.Frame):
 
     def set_modes(self) -> None:
         if self.master.master.graph.tool is not None:
+            self.master.master.graph.index = 0
             figure = create_figure_from_analysis_mode(self.master.master.graph.tool, AnalysisModes.Modes)
             self.master.master.graph.plot(figure)
 
     def set_eigenfunctions(self) -> None:
         if self.master.master.graph.tool is not None:
+            self.master.master.graph.index = 0
             figure = create_figure_from_analysis_mode(self.master.master.graph.tool, AnalysisModes.Eigenfunctions)
             self.master.master.graph.plot(figure)
 
