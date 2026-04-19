@@ -13,7 +13,7 @@ class App(tk.Tk):
     def __init__(self) -> None:
         super(App, self).__init__()
         self.title(APP_NAME)
-        self.width = int(self.winfo_screenheight()*3 / 5) + int(self.winfo_screenwidth() / 5)
+        self.width = int(self.winfo_screenheight()*3 / 5) + int(self.winfo_screenwidth() / 4)
         self.height = int(self.winfo_screenheight()*3 / 5) + int(self.winfo_screenheight() / 5)
         self.geometry(
             f'{self.width}x{self.height}+{int((self.winfo_screenwidth() - self.width) / 2)}+{int((self.winfo_screenheight() - self.height) / 2)}'
@@ -47,7 +47,7 @@ class App(tk.Tk):
         )
         self.sidebar = Sidebar(
             master=self,
-            width=int(self.winfo_screenwidth() / 5),
+            width=int(self.winfo_screenwidth() / 4),
             height=int(self.winfo_screenheight() * 3 / 5)
         )
         self.sidebar.place(

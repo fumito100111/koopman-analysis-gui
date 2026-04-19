@@ -1,5 +1,6 @@
 #!/bin/bash
 
+APP_NAME="Koopman Analysis GUI"
 REPO_URL="https://github.com/fumito100111/koopman-analysis-gui.git"
 
 function error() {
@@ -56,9 +57,16 @@ function move_executable() {
       ;;
   esac
   mkdir -p "$BIN" || error "Failed to create bin directory at $BIN."
-  mv "$APP_DATA/kagui" "$BIN/" || error "Failed to move executable to $BIN."
+  cp "$APP_DATA/kagui" "$BIN/" || error "Failed to copy executable to $BIN."
   chmod +x "$BIN/kagui" || error "Failed to make executable at $BIN/kagui."
   add_path "$BIN"
+}
+
+function update() {
+  cd "$APP_DATA" || error "Failed to navigate to application directory at $APP_DATA."
+  git pull origin main || error "Failed to update application from repository."
+  setup
+  move_executable
 }
 
 function install() {
@@ -74,13 +82,19 @@ function install() {
       ;;
   esac
 
+  if [ -d "$APP_DATA" ]; then
+    echo "Already installed at $APP_DATA."
+    update
+    echo "Updated successfully."
+    exit 0
+  fi
+
   if ! command -v git &> /dev/null; then
     error "Git is not installed. Please install Git to proceed."
   fi
 
   git clone "$REPO_URL" "$APP_DATA" || error "Failed to clone repository from $REPO_URL."
   cd "$APP_DATA" || error "Failed to navigate to application directory at $APP_DATA."
-  rm -rf .git || error "Failed to remove .git directory."
   setup
   move_executable
 }
