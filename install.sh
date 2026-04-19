@@ -85,7 +85,7 @@ function install() {
   if [ -d "$APP_DATA" ]; then
     echo "Already installed at $APP_DATA."
     update
-    echo "Updated successfully."
+    echo "\nUpdated successfully."
     exit 0
   fi
 
