@@ -67,6 +67,8 @@ function update() {
   git pull origin main || error "Failed to update application from repository."
   setup
   move_executable
+  echo ""
+  echo "Updated successfully."
 }
 
 function install() {
@@ -85,7 +87,6 @@ function install() {
   if [ -d "$APP_DATA" ]; then
     echo "Already installed at $APP_DATA."
     update
-    echo "\nUpdated successfully."
     exit 0
   fi
 
