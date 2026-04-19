@@ -418,8 +418,16 @@ def koopman_analysis(
             message=f'Error: Invalid analysis tool \'{tool}\'.\n'
         )
 
+    if test_X.shape[1] == 0:
+        return KoopmanAnalysisResponse(
+            status=KoopmanAnalysisStatus.Success,
+            message='\nNot enough test data for evaluation. Skipping evaluation step.\n\nKoopman analysis completed successfully.\n',
+            figure=create_figure_from_analysis_mode(tool, analysis_mode),
+            tool=tool
+        )
+
     evals = evaluate(tool, test_X, test_Y)
-    message = 'Evaluation :\n'
+    message = '\nEvaluation :\n'
     metrics_max_length = max(len(metric) for metric in evals.keys())
     for metric, value in evals.items():
         message += f'  - {metric:>{metrics_max_length}}: {value:.4e}\n'
