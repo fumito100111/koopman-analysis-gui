@@ -39,7 +39,6 @@ function move_executable() {
   mkdir -p "$BIN" || error "Failed to create bin directory at $BIN."
   cp "$APP_DATA/kagui" "$BIN/" || error "Failed to copy executable to $BIN."
   chmod +x "$BIN/kagui" || error "Failed to make executable at $BIN/kagui."
-  add_path "$BIN"
 }
 
 function update() {
