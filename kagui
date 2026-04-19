@@ -24,6 +24,31 @@ function usage() {
   echo "  run   - Run the Koopman Analysis GUI application"
 }
 
+function move_executable() {
+  case "$(uname -s)" in
+    Darwin*)
+      BIN="$HOME/.local/bin"
+      ;;
+    Linux*)
+      BIN="$HOME/.local/bin"
+      ;;
+    *)
+      error "Unsupported OS: $(uname -s). This application supports only macOS and Linux."
+      ;;
+  esac
+  mkdir -p "$BIN" || error "Failed to create bin directory at $BIN."
+  cp "$APP_DATA/kagui" "$BIN/" || error "Failed to copy executable to $BIN."
+  chmod +x "$BIN/kagui" || error "Failed to make executable at $BIN/kagui."
+  add_path "$BIN"
+}
+
+function update() {
+  cd "$APP_DATA" || error "Failed to navigate to application directory at $APP_DATA."
+  git pull origin main || error "Failed to update application from repository."
+  setup
+  move_executable
+}
+
 case "$1" in
   run)
     cd "$APP_DATA"
@@ -33,6 +58,9 @@ case "$1" in
     fi
     source .venv/bin/activate
     python3 app/main.py
+    ;;
+  update)
+    update
     ;;
   *)
     usage
